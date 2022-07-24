@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use std::fmt;
 use crate::util::*;
 use crate::errors::*;
 use crate::client::Client;
@@ -37,6 +38,7 @@ impl From<ContractType> for String {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum PositionSide {
     Both,
     Long,
@@ -49,6 +51,16 @@ impl From<PositionSide> for String {
             PositionSide::Both => String::from("BOTH"),
             PositionSide::Long => String::from("LONG"),
             PositionSide::Short => String::from("SHORT"),
+        }
+    }
+}
+
+impl fmt::Display for PositionSide {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            PositionSide::Both => write!(f, "BOTH"),
+            PositionSide::Long => write!(f, "LONG"),
+            PositionSide::Short => write!(f, "SHORT"),
         }
     }
 }
@@ -128,12 +140,13 @@ pub struct CustomOrderRequest {
 impl FuturesAccount {
     pub fn limit_buy(
         &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64,
+        position_side: Option<PositionSide>,
         time_in_force: TimeInForce,
     ) -> Result<Transaction> {
         let buy = OrderRequest {
             symbol: symbol.into(),
             side: OrderSide::Buy,
-            position_side: None,
+            position_side,
             order_type: OrderType::Limit,
             time_in_force: Some(time_in_force),
             qty: Some(qty.into()),
@@ -154,12 +167,13 @@ impl FuturesAccount {
 
     pub fn limit_sell(
         &self, symbol: impl Into<String>, qty: impl Into<f64>, price: f64,
+        position_side: Option<PositionSide>,
         time_in_force: TimeInForce,
     ) -> Result<Transaction> {
         let sell = OrderRequest {
             symbol: symbol.into(),
             side: OrderSide::Sell,
-            position_side: None,
+            position_side,
             order_type: OrderType::Limit,
             time_in_force: Some(time_in_force),
             qty: Some(qty.into()),
@@ -179,7 +193,7 @@ impl FuturesAccount {
     }
 
     // Place a MARKET order - BUY
-    pub fn market_buy<S, F>(&self, symbol: S, qty: F) -> Result<Transaction>
+    pub fn market_buy<S, F>(&self, symbol: S, qty: F, position_side: Option<PositionSide>) -> Result<Transaction>
     where
         S: Into<String>,
         F: Into<f64>,
@@ -187,7 +201,7 @@ impl FuturesAccount {
         let buy = OrderRequest {
             symbol: symbol.into(),
             side: OrderSide::Buy,
-            position_side: None,
+            position_side,
             order_type: OrderType::Market,
             time_in_force: None,
             qty: Some(qty.into()),
@@ -207,7 +221,7 @@ impl FuturesAccount {
     }
 
     // Place a MARKET order - SELL
-    pub fn market_sell<S, F>(&self, symbol: S, qty: F) -> Result<Transaction>
+    pub fn market_sell<S, F>(&self, symbol: S, qty: F, position_side: Option<PositionSide>) -> Result<Transaction>
     where
         S: Into<String>,
         F: Into<f64>,
@@ -215,7 +229,7 @@ impl FuturesAccount {
         let sell: OrderRequest = OrderRequest {
             symbol: symbol.into(),
             side: OrderSide::Sell,
-            position_side: None,
+            position_side,
             order_type: OrderType::Market,
             time_in_force: None,
             qty: Some(qty.into()),
@@ -261,7 +275,7 @@ impl FuturesAccount {
     }
 
     // Place a STOP_MARKET close - BUY
-    pub fn stop_market_close_buy<S, F>(&self, symbol: S, stop_price: F) -> Result<Transaction>
+    pub fn stop_market_close_buy<S, F>(&self, symbol: S, stop_price: F, position_side: Option<PositionSide>) -> Result<Transaction>
     where
         S: Into<String>,
         F: Into<f64>,
@@ -269,7 +283,7 @@ impl FuturesAccount {
         let sell: OrderRequest = OrderRequest {
             symbol: symbol.into(),
             side: OrderSide::Buy,
-            position_side: None,
+            position_side,
             order_type: OrderType::StopMarket,
             time_in_force: None,
             qty: None,
@@ -289,7 +303,7 @@ impl FuturesAccount {
     }
 
     // Place a STOP_MARKET close - SELL
-    pub fn stop_market_close_sell<S, F>(&self, symbol: S, stop_price: F) -> Result<Transaction>
+    pub fn stop_market_close_sell<S, F>(&self, symbol: S, stop_price: F, position_side: Option<PositionSide>) -> Result<Transaction>
     where
         S: Into<String>,
         F: Into<f64>,
@@ -297,7 +311,7 @@ impl FuturesAccount {
         let sell: OrderRequest = OrderRequest {
             symbol: symbol.into(),
             side: OrderSide::Sell,
-            position_side: None,
+            position_side,
             order_type: OrderType::StopMarket,
             time_in_force: None,
             qty: None,

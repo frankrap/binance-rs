@@ -42,6 +42,10 @@ pub struct FuturesMarket {
 }
 
 impl FuturesMarket {
+    pub fn exchange_info(&self) -> Result<ExchangeInformation> {
+        self.client.get(API::Futures(Futures::ExchangeInfo), None)
+    }
+
     // Order book (Default 100; max 1000)
     pub fn get_depth<S>(&self, symbol: S) -> Result<OrderBook>
     where
